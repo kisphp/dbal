@@ -19,25 +19,95 @@ class Database
         $this->pdo = $pdo;
     }
 
-    public function insert($tableName, array $keyValues, $forceIgnore = false)
+    /**
+     * @param array $tableFields
+     *
+     * @return array
+     */
+    protected function buildStatementParameters(array $tableFields)
     {
-        $parameters = [];
-        foreach ($keyValues as $column => $value) {
-            $parameters[] = sprintf('%s = \'%s\'', $column, $value);
-        }
+        $parameters = array_reduce(array_keys($tableFields), function($parameters, $b){
+            $parameters[] = $b . ' = :' . $b;
 
-        $query = sprintf(
-            'INSERT%sINTO %s SET %s',
-            ($forceIgnore === true) ? ' IGNORE ' : ' ',
-            $tableName,
-            implode(', ', $parameters)
-        );
+            return $parameters;
+        });
 
-        $this->execute($query);
+        return $parameters;
     }
 
+    /**
+     * @param string $tableName
+     * @param array $tableFields
+     * @param bool|false $forceIgnore
+     *
+     * @return string last insert id
+     */
+    public function insert($tableName, array $tableFields, $forceIgnore = false)
+    {
+        $tableColumns = implode(', ', $this->buildStatementParameters($tableFields));
+
+        $query = sprintf(
+            "INSERT %s INTO %s SET %s",
+            ($forceIgnore === true) ? 'IGNORE' : '',
+            $tableName,
+            $tableColumns
+        );
+
+        $stmt = $this->pdo->prepare($query);
+        foreach ($tableFields as $key => $value) {
+            $stmt->bindParam(':' . $key, $value);
+        }
+
+        $stmt->execute();
+
+        return $this->pdo->lastInsertId();
+    }
+
+    /**
+     * @param string $tableName
+     * @param array $tableFields
+     * @param array $conditions
+     *
+     * @return int affected rows
+     */
+    public function update($tableName, array $tableFields, array $conditions)
+    {
+        $tableColumns = implode(', ', $this->buildStatementParameters($tableFields));
+        $tableConditions = implode(' AND ', $this->buildStatementParameters($conditions));
+
+        $query = sprintf(
+            "UPDATE %s SET %s WHERE %s",
+            $tableName,
+            $tableColumns,
+            $tableConditions
+        );
+
+        $stmt = $this->pdo->prepare($query);
+        foreach ($tableFields as $key => $value) {
+            $stmt->bindParam(':' . $key, $value);
+        }
+
+        foreach ($conditions as $parameterName => $parameterValue) {
+            $stmt->bindParam(':' . $parameterName, $parameterValue);
+        }
+
+        $stmt->execute();
+
+        return $stmt->rowCount();
+    }
+
+    /**
+     * @param string $query
+     *
+     * @return \Doctrine\DBAL\Driver\Statement
+     */
     protected function execute($query)
     {
-        dump($query);die;
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+//        $this->getLog()->log($stmt);
+
+        return $stmt;
     }
 }
