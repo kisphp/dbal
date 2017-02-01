@@ -1,0 +1,27 @@
+language: php
+php:
+  - 5.6
+#  - 7.0
+before_script:
+  - travis_retry composer self-update
+  - cp tests/config.json.dist tests/config.json
+before_install:
+  - mysql -e "CREATE DATABASE kisphp_database;"
+install:
+  - composer install --prefer-dist --no-interaction
+script:
+  - phpunit --coverage-clover=coverage.xml
+  - vendor/bin/php-cs-fixer fix --dry-run
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+## Run on container environment
+sudo: false
+
+services:
+  - mysql
+
+## Cache composer bits
+cache:
+  directories:
+  - $HOME/.composer/cache

@@ -13,11 +13,38 @@ class Database
     protected $pdo;
 
     /**
-     * @param Connection $pdo
+     * @var DatabaseLog
      */
-    public function __construct(Connection $pdo)
+    protected $log;
+
+    /**
+     * @param Connection $pdo
+     * @param DatabaseLog|null $log
+     */
+    public function __construct(Connection $pdo, DatabaseLog $log = null)
     {
         $this->pdo = $pdo;
+        $this->log = $log;
+    }
+
+    /**
+     * @return DatabaseLog
+     */
+    public function getLog()
+    {
+        return $this->log;
+    }
+
+    /**
+     * @return array
+     */
+    public function getLastQuery()
+    {
+        if (empty($this->log)) {
+            return [];
+        }
+
+        return $this->log->getLastQuery();
     }
 
     /**
@@ -48,8 +75,8 @@ class Database
         $tableColumns = implode(', ', $this->buildStatementParameters($tableFields));
 
         $query = sprintf(
-            "INSERT %s INTO %s SET %s",
-            ($forceIgnore === true) ? 'IGNORE' : '',
+            'INSERT%sINTO %s SET %s',
+            ($forceIgnore === true) ? ' IGNORE ' : ' ',
             $tableName,
             $tableColumns
         );
@@ -60,6 +87,8 @@ class Database
         }
 
         $stmt->execute();
+
+        $this->log->add($stmt);
 
         return $this->pdo->lastInsertId();
     }
@@ -95,6 +124,8 @@ class Database
 
         $stmt->execute($parameters);
 
+        $this->log->add($stmt);
+
         return $stmt->rowCount();
     }
 
@@ -108,6 +139,8 @@ class Database
     {
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
+
+        $this->log->add($stmt);
 
         $output = [];
         foreach ($stmt->fetchAll(\PDO::FETCH_NUM) as $row) {
@@ -128,6 +161,8 @@ class Database
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
 
+        $this->log->add($stmt);
+
         $row = $stmt->fetch(\PDO::FETCH_NUM);
 
         return $row[0];
@@ -144,6 +179,8 @@ class Database
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
 
+        $this->log->add($stmt);
+
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         return $row;
@@ -158,7 +195,13 @@ class Database
     public function query($query, array $conditions = [])
     {
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute($conditions);
+        if (count($conditions) > 0) {
+            $stmt->execute($conditions);
+        } else {
+            $stmt->execute();
+        }
+
+        $this->log->add($stmt);
 
         return $stmt;
     }
@@ -172,6 +215,8 @@ class Database
     {
         $stmt = $this->pdo->prepare($query);
         $stmt->execute();
+
+        $this->log->add($stmt);
 
         return $stmt;
     }
