@@ -72,7 +72,9 @@ $db->insert(
 $db->update('test_table', [
     'column_1' => 'value_1',
     'column_2' => 'value_2',
-], 20);
+], [
+    'id' => 1
+]);
 
 // will return affected_rows
 ```
@@ -82,12 +84,18 @@ $db->update('test_table', [
 
 ```php
 $value = $db->getValue("SELECT column_1 FROM test_table");
+// or
+$value = $db->getValue("SELECT column_1 FROM test_table WHERE id = :id", [ 'id' => 1 ]);
 ```
 
 ## Get pairs 
 
 ```php
 $pairs = $db->getPairs("SELECT id, column_1 FROM test_table");
+
+// or
+
+$pairs = $db->getPairs("SELECT id, column_1 FROM test_table WHERE column_2 = :condition", [ 'condition' => 'demo' ]);
 
 /*
 will result
@@ -103,7 +111,11 @@ $pairs = [
  
 
 ```php
-$query = $db->query("SELECT * FROM test_table ");
+$query = $db->query("SELECT * FROM test_table");
+
+// or
+
+$query = $db->query("SELECT * FROM test_table WHERE column = :condition", [ 'condition' => 'demo' ]);
 
 while ($item = $query->fetch(\PDO::FETCH_ASSOC)) {
     var_dump($item);
