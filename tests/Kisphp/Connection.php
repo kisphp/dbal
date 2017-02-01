@@ -7,11 +7,14 @@ use Doctrine\DBAL\DriverManager;
 
 abstract class Connection
 {
+    /**
+     * @return array
+     */
     protected static function createConfigParams()
     {
-        $content = file_get_contents(__DIR__ . '/../config.php');
+        $content = file_get_contents(__DIR__ . '/../config.json');
 
-        return json_decode($content);
+        return json_decode($content, true);
     }
 
     /**
