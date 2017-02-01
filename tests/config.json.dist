@@ -1,0 +1,7 @@
+{
+    "dbname": "kisphp_database",
+    "user": "root",
+    "password": "",
+    "host": "localhost",
+    "driver": "pdo_mysql"
+}

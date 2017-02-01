@@ -13,11 +13,38 @@ class Database
     protected $pdo;
 
     /**
-     * @param Connection $pdo
+     * @var DatabaseLog
      */
-    public function __construct(Connection $pdo)
+    protected $log;
+
+    /**
+     * @param Connection $pdo
+     * @param DatabaseLog|null $log
+     */
+    public function __construct(Connection $pdo, DatabaseLog $log = null)
     {
         $this->pdo = $pdo;
+        $this->log = $log;
+    }
+
+    /**
+     * @return DatabaseLog
+     */
+    public function getLog()
+    {
+        return $this->log;
+    }
+
+    /**
+     * @return array
+     */
+    public function getLastQuery()
+    {
+        if (empty($this->getLog())) {
+            return [];
+        }
+
+        return $this->getLog()->getLastQuery();
     }
 
     /**
@@ -27,7 +54,7 @@ class Database
      */
     protected function buildStatementParameters(array $tableFields)
     {
-        $parameters = array_reduce(array_keys($tableFields), function($parameters, $b){
+        $parameters = array_reduce(array_keys($tableFields), function ($parameters, $b) {
             $parameters[] = $b . ' = :' . $b;
 
             return $parameters;
@@ -48,8 +75,8 @@ class Database
         $tableColumns = implode(', ', $this->buildStatementParameters($tableFields));
 
         $query = sprintf(
-            "INSERT %s INTO %s SET %s",
-            ($forceIgnore === true) ? 'IGNORE' : '',
+            'INSERT%sINTO %s SET %s',
+            ($forceIgnore === true) ? ' IGNORE ' : ' ',
             $tableName,
             $tableColumns
         );
@@ -60,6 +87,8 @@ class Database
         }
 
         $stmt->execute();
+
+        $this->getLog()->add($stmt);
 
         return $this->pdo->lastInsertId();
     }
@@ -77,7 +106,7 @@ class Database
         $tableConditions = implode(' AND ', $this->buildStatementParameters($conditions));
 
         $query = sprintf(
-            "UPDATE %s SET %s WHERE %s",
+            'UPDATE %s SET %s WHERE %s',
             $tableName,
             $tableColumns,
             $tableConditions
@@ -95,6 +124,8 @@ class Database
 
         $stmt->execute($parameters);
 
+        $this->getLog()->add($stmt);
+
         return $stmt->rowCount();
     }
 
@@ -108,6 +139,8 @@ class Database
     {
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
+
+        $this->getLog()->add($stmt);
 
         $output = [];
         foreach ($stmt->fetchAll(\PDO::FETCH_NUM) as $row) {
@@ -128,6 +161,8 @@ class Database
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
 
+        $this->getLog()->add($stmt);
+
         $row = $stmt->fetch(\PDO::FETCH_NUM);
 
         return $row[0];
@@ -143,6 +178,8 @@ class Database
     {
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
+
+        $this->getLog()->add($stmt);
 
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -160,18 +197,7 @@ class Database
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
 
-        return $stmt;
-    }
-
-    /**
-     * @param string $query
-     *
-     * @return \Doctrine\DBAL\Driver\Statement
-     */
-    protected function execute($query)
-    {
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute();
+        $this->getLog()->add($stmt);
 
         return $stmt;
     }
