@@ -7,7 +7,7 @@ use Doctrine\DBAL\DriverManager;
 
 abstract class Connection
 {
-    protected function createConfigParams()
+    protected static function createConfigParams()
     {
         $content = file_get_contents(__DIR__ . '/../config.php');
 
@@ -20,13 +20,7 @@ abstract class Connection
     public static function create()
     {
         $config = new Configuration();
-        $connectionParams = [
-            'dbname' => 'copiatoare',
-            'user' => 'developer',
-            'password' => 'develop123',
-            'host' => 'localhost',
-            'driver' => 'pdo_mysql',
-        ];
+        $connectionParams = static::createConfigParams();
 
         return DriverManager::getConnection($connectionParams, $config);
     }

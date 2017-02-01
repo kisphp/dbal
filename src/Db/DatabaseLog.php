@@ -15,7 +15,7 @@ class DatabaseLog
     /**
      * @return array
      */
-    public function getHistory(): array
+    public function getHistory()
     {
         return $this->history;
     }
