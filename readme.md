@@ -1,6 +1,7 @@
 # Simple MySQL Database Access Layer
 
 [![Build Status](https://travis-ci.org/kisphp/dbal.svg?branch=master)](https://travis-ci.org/kisphp/dbal)
+[![codecov](https://codecov.io/gh/kisphp/dbal/branch/master/graph/badge.svg)](https://codecov.io/gh/kisphp/dbal)
 
 ## Installation
 

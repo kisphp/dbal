@@ -40,11 +40,11 @@ class Database
      */
     public function getLastQuery()
     {
-        if (empty($this->log)) {
+        if (empty($this->getLog())) {
             return [];
         }
 
-        return $this->log->getLastQuery();
+        return $this->getLog()->getLastQuery();
     }
 
     /**
@@ -88,7 +88,7 @@ class Database
 
         $stmt->execute();
 
-        $this->log->add($stmt);
+        $this->getLog()->add($stmt);
 
         return $this->pdo->lastInsertId();
     }
@@ -124,7 +124,7 @@ class Database
 
         $stmt->execute($parameters);
 
-        $this->log->add($stmt);
+        $this->getLog()->add($stmt);
 
         return $stmt->rowCount();
     }
@@ -140,7 +140,7 @@ class Database
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
 
-        $this->log->add($stmt);
+        $this->getLog()->add($stmt);
 
         $output = [];
         foreach ($stmt->fetchAll(\PDO::FETCH_NUM) as $row) {
@@ -161,7 +161,7 @@ class Database
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
 
-        $this->log->add($stmt);
+        $this->getLog()->add($stmt);
 
         $row = $stmt->fetch(\PDO::FETCH_NUM);
 
@@ -179,7 +179,7 @@ class Database
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($conditions);
 
-        $this->log->add($stmt);
+        $this->getLog()->add($stmt);
 
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -195,28 +195,9 @@ class Database
     public function query($query, array $conditions = [])
     {
         $stmt = $this->pdo->prepare($query);
-        if (count($conditions) > 0) {
-            $stmt->execute($conditions);
-        } else {
-            $stmt->execute();
-        }
+        $stmt->execute($conditions);
 
-        $this->log->add($stmt);
-
-        return $stmt;
-    }
-
-    /**
-     * @param string $query
-     *
-     * @return \Doctrine\DBAL\Driver\Statement
-     */
-    protected function execute($query)
-    {
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute();
-
-        $this->log->add($stmt);
+        $this->getLog()->add($stmt);
 
         return $stmt;
     }
