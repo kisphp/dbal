@@ -54,7 +54,7 @@ class Database
      */
     protected function buildStatementParameters(array $tableFields)
     {
-        $parameters = array_reduce(array_keys($tableFields), function($parameters, $b){
+        $parameters = array_reduce(array_keys($tableFields), function ($parameters, $b) {
             $parameters[] = $b . ' = :' . $b;
 
             return $parameters;
@@ -106,7 +106,7 @@ class Database
         $tableConditions = implode(' AND ', $this->buildStatementParameters($conditions));
 
         $query = sprintf(
-            "UPDATE %s SET %s WHERE %s",
+            'UPDATE %s SET %s WHERE %s',
             $tableName,
             $tableColumns,
             $tableConditions
