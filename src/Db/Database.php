@@ -181,9 +181,7 @@ class Database
 
         $this->getLog()->add($stmt);
 
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        return $row;
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     /**
