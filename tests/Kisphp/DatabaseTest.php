@@ -44,9 +44,18 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals(0, $lastQuery['error_code']);
+
+        $res = $this->db->getRow("SELECT * FROM text_table WHERE id = " . $insertedId);
+
+        $this->asseerSame([
+            'id' => $insertedId,
+            'column_1' => 'value_1',
+            'column_2' => 'value_2',
+            'column_3' => '',
+        ], $res);
     }
 
-    public function test_insert_ignore()
+    public function _test_insert_ignore()
     {
         $this->db->insert(
             'test_table',
@@ -67,7 +76,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(0, $lastQuery['error_code']);
     }
 
-    public function test_update_simple_value()
+    public function _test_update_simple_value()
     {
         $this->db->update('test_table', [
             'column_1' => 'value_1',
@@ -86,7 +95,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(0, $lastQuery['error_code']);
     }
 
-    public function test_update_simple_value_on_other_column()
+    public function _test_update_simple_value_on_other_column()
     {
         $this->db->update('test_table', [
             'column_1' => 'value_1',
@@ -105,14 +114,14 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(0, $lastQuery['error_code']);
     }
 
-    public function test_get_value()
+    public function _test_get_value()
     {
         $value = $this->db->getValue("SELECT column_1 FROM test_table");
 
         $this->assertSame('c1.1', $value);
     }
 
-    public function test_get_pairs()
+    public function _test_get_pairs()
     {
         $pairs = $this->db->getPairs("SELECT id, column_1 FROM test_table");
 
@@ -123,7 +132,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         ], $pairs);
     }
 
-    public function test_select()
+    public function _test_select()
     {
         $a = $this->db->query("SELECT * FROM test_table ");
 

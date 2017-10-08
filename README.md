@@ -30,6 +30,10 @@ $connectionParams = [
     'dbname' => 'test',
     'user' => 'root',
     'password' => '',
+    'charset'  => 'utf8',
+    'driverOptions' => [
+        1002 => 'SET NAMES utf8',
+    ]
 ];
 
 $connection = DriverManager::getConnection($connectionParams, $config);
