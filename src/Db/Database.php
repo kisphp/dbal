@@ -2,7 +2,7 @@
 
 namespace Kisphp\Db;
 
-use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDOStatement;
 
 class Database
@@ -40,7 +40,7 @@ class Database
      */
     public function getLastQuery()
     {
-        if (empty($this->getLog())) {
+        if ($this->getLog() === null) {
             return [];
         }
 
@@ -54,13 +54,12 @@ class Database
      */
     protected function buildStatementParameters(array $tableFields)
     {
-        $parameters = array_reduce(array_keys($tableFields), function ($parameters, $bcolumn) {
-            $parameters[] = $bcolumn . ' = :' . $bcolumn;
+        $columns = [];
+        foreach (array_keys($tableFields) as $column) {
+            $columns[$column] = ':' . $column;
+        }
 
-            return $parameters;
-        });
-
-        return $parameters;
+        return $columns;
     }
 
     /**
@@ -72,25 +71,18 @@ class Database
      */
     public function insert($tableName, array $tableFields, $forceIgnore = false)
     {
-        $tableColumns = implode(', ', $this->buildStatementParameters($tableFields));
+        $queryBuilder = $this->pdo->createQueryBuilder();
+        $queryBuilder->insert($tableName);
 
-        $query = sprintf(
-            'INSERT%sINTO %s SET %s',
-            ($forceIgnore === true) ? ' IGNORE ' : ' ',
-            $tableName,
-            $tableColumns
-        );
+        $tableColumns = $this->buildStatementParameters($tableFields);
 
-        $stmt = $this->pdo->prepare($query);
-        foreach ($tableFields as $key => $value) {
-//            dump($value);
-            $stmt->bindParam( ':' . $key, $value);
+        $queryBuilder->values($tableColumns);
+
+        foreach ($tableFields as $column => $value) {
+            $queryBuilder->setParameter(':' . $column, $value);
         }
-//        die;
 
-        $stmt->execute();
-
-        $this->getLog()->add($stmt);
+        $queryBuilder->execute();
 
         return $this->pdo->lastInsertId();
     }
