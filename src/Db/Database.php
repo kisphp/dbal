@@ -54,8 +54,8 @@ class Database
      */
     protected function buildStatementParameters(array $tableFields)
     {
-        $parameters = array_reduce(array_keys($tableFields), function ($parameters, $b) {
-            $parameters[] = $b . ' = :' . $b;
+        $parameters = array_reduce(array_keys($tableFields), function ($parameters, $bcolumn) {
+            $parameters[] = $bcolumn . ' = :' . $bcolumn;
 
             return $parameters;
         });
@@ -83,8 +83,10 @@ class Database
 
         $stmt = $this->pdo->prepare($query);
         foreach ($tableFields as $key => $value) {
-            $stmt->bindParam(':' . $key, $value);
+//            dump($value);
+            $stmt->bindParam( ':' . $key, $value);
         }
+//        die;
 
         $stmt->execute();
 
